@@ -4,8 +4,8 @@ two_page_trial (version 0.5) BETA
 A simple two page checkout geared toward trial offers.
 
 
-Installation
-____________
+*Installation*
+______________
 Copy all of the files to your web tree.  Make sure the rest_proxy.php file works.  Here's how to test it out:
 
    Test #1: If you call it directly from the web browser, you should receive back this response: "UltraCart rest proxy script called incorrectly.  _url query parameter is required.
@@ -14,8 +14,8 @@ Copy all of the files to your web tree.  Make sure the rest_proxy.php file works
 
    Test #3:  call this: rest_proxy.php?_url=/rest/cart&_mid=DEMO, you should receive back the json for an empty cart.
    
-Configuration
-_____________
+*Configuration*
+_______________
 
  * Javascript Checklist
 
