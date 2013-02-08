@@ -1,0 +1,64 @@
+#content {
+  width: 90%;
+  margin: 0 auto;
+  font-size: 0.8em;
+}
+
+.comments {
+  font-style: italic;
+}
+
+h1 {
+  font-size: 1.5em;
+}
+
+.demo {
+  border: 1px solid #E0E0E0;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+.title {
+  margin-top: 0;
+  background-color: #E0E0E0;
+  padding: 10px 5px;
+}
+
+.details {
+  padding: 10px;
+}
+
+.results {
+  margin: 10px 0;
+
+}
+
+.results pre {
+  font-family: "Consolas", "Bitstream Vera Sans Mono", "Courier New", Courier, monospace;
+}
+.validation-options-table td{
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.validation-options{
+  margin-top: 10px;
+}
+
+.comments{
+  margin: 0 5px;
+}
+
+.address-fields td{
+  vertical-align: top;
+}
+
+.customer-section .step{
+  margin-top: 25px;
+}
+
+.customer-section .label{
+  display: inline-block;
+  padding-right: 5px;
+  width: 60px;
+}

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>(Page 2) Two Page Trial Checkout</title>
+<link rel="stylesheet" href="css/normalize.css">
+<style type='text/css'>
+  #content {
+    width: 90%;
+    margin: 0 auto;
+    font-size: 0.8em;
+    position: relative;
+  }
+
+  .form-panel {
+    position: absolute;
+    top: 50px;
+    right: 18px;
+    width: 245px;
+    height: 430px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    color: black;
+    border: 1px solid #C0C0C0;
+    border-radius: 5px;
+    padding: 10px;
+  }
+
+  .cart-contents{
+    border: 1px solid #C0C0C0;
+    border-radius: 5px;
+    padding: 10px;
+    width: 550px;
+  }
+
+  .label-span {
+    display: inline-block;
+    width: 100px;
+  }
+
+  .form-field {
+    width: 120px;
+  }
+
+  .form-row {
+    margin: 3px 0;
+  }
+
+  .certify-row {
+    font-size: 0.8em;
+  }
+
+  .form-button-row {
+    text-align: center;
+  }
+
+  .form-button-row button {
+    width: 95%;
+  }
+
+  .trust-seals {
+    margin: 20px 0;
+  }
+
+  .cart-contents {
+    margin-top: 30px;
+  }
+
+  .hidden{
+    display:none;
+  }
+
+  .product{
+    text-align: left;
+    width:400px;
+  }
+
+  .price{
+    text-align: right;
+    width: 100px;
+  }
+
+  .summary-description{
+    text-align: right;
+  }
+
+</style>
+
+<!--[if IE]>
+<script type='text/javascript' src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<script type="text/javascript" src="js/json2.js"></script>
+<script type="text/javascript" src="js/jquery-1.8.3.js"></script>
+<script type="text/javascript" src="js/jquery.cookie.js"></script>
+
+
+<script type="text/javascript">
+  // Steps
+  // 1. On page load, look for a cart cookie.  If found, load up the cart and fill in the fields
+  // 2. On 'Order Now' click, collect the values, validate them, and store them.  Since this is a
+  //    simple cart, we'll store address information in both 'shipto' and 'billto' fields.
+  // Note: If you are running a cart OFF the UltraCart platform, you will need a relay script due to XSS restrictions.
+
+  var merchantId = 'DEMO';
+  var myCart = null;
+  var cartCookieName = 'UltraCartShoppingCartId'; // the cookie name has a strong convention with UltraCart. Use this cookie name.
+  var myServerName = "secure.ultracart.com"; // many merchants have more than one web site.  specify the server name needed to show receipt page.
+  var paymentMethod = 'Credit Card';
+
+  function validate(cart) {
+    //TODO add your validation here.
+    //TODO remember to check the "I certify" checkbox here.
+    return true;
+  }
+
+
+  function cartToFields(cart) {
+    jQuery('#cardNumber').val(cart.creditCardNumber);
+    jQuery('#cardType').val(cart.creditCardType);
+    jQuery('#expirationMonth').val(cart.creditCardExpirationMonth);
+    jQuery('#expirationYear').val(cart.creditCardExpirationYear);
+    jQuery('#cvv2').val(cart.creditCardVerificationNumber);
+  }
+
+  function fieldsToCart(cart) {
+    cart.creditCardNumber = jQuery.trim(jQuery('#cardNumber').val());
+    cart.creditCardType = jQuery.trim(jQuery('#cardType').val());
+    cart.creditCardExpirationMonth = jQuery.trim(jQuery('#expirationMonth').val());
+    cart.creditCardExpirationYear = jQuery.trim(jQuery('#expirationYear').val());
+    cart.creditCardVerificationNumber = jQuery.trim(jQuery('#cvv2').val());
+
+    return cart;
+  }
+
+  function displayContents(cart) {
+    var discount = cart.subtotalDiscount + cart.shippingHandlingDiscount;
+
+    jQuery('#subtotal').text('$' + cart.subtotal.toFixed(2));
+    jQuery('#shipping').text('$' + cart.shippingHandlingWithDiscount.toFixed(2));
+    jQuery('#discount').text('$' + discount.toFixed(2));
+    jQuery('#total').text('$' + cart.subtotal.toFixed(2));
+
+    if (cart.items && cart.items.length) {
+      var html = '';
+      for (var i = 0; i < cart.items.length; i++) {
+        var item = cart.items[i];
+        html += '<tr><td class="product">' + item.description + '</td><td  class="summary-description">&nbsp;</td><td class="price">$' + item.unitCost.toFixed(2) + '</td></tr>';
+      }
+      jQuery('.cart-contents-table tbody').html(html);
+    }
+
+    jQuery('.cart-contents').removeClass('hidden');
+  }
+
+  function loadCart() {
+    // check for cookie cart id.  load cart, populate fields.
+    var cartId = jQuery.cookie(cartCookieName) || '';
+
+    jQuery.ajax({
+      url: 'rest_proxy.php?_url=/rest/cart',
+      headers: {
+        'X-UC-Merchant-Id': merchantId,  // could also pass merchant id as query parameter named '_mid' or cookie named 'UltraCartMerchantId'
+        'X-UC-Shopping-Cart-Id': cartId, // could also pass cart id as query parameter named '_cid' or cookie named 'UltraCartShoppingCartId'
+        // if I am setting this as a cookie, why do the header?  I prefer to be explicit.  It makes debugging easier later on.  easier to track in consoles.
+        "cache-control": "no-cache"
+      },
+      dataType: 'json'
+    }).done(function (cart) {
+          cartToFields(cart);
+          displayContents(cart);
+          myCart = cart;
+          // even if the cookie is already set, set it again.  updates the expiration of it.
+          jQuery.cookie(cartCookieName, cart.cartId, { expires: 7, path: '/' });
+        });
+  }
+
+
+  function saveFieldsAndContinue() {
+    var cart = myCart; // this should NOT be null.
+    if (!cart) {
+      cart = {merchantId: merchantId};
+    }
+    cart = fieldsToCart(cart);
+    cart.paymentMethod = paymentMethod;
+
+    var checkoutRequest = {
+      'cart': cart,
+      errorParameterName: 'error',
+      errorReturnUrl: document.URL,
+      secureHostName: myServerName
+    };
+    if (validate(cart)) {
+      jQuery.ajax({
+        url: 'rest_proxy.php?_url=/rest/cart/checkout',
+        type: 'POST', // Notice
+        headers : { "cache-control": "no-cache" },
+        contentType: 'application/json; charset=UTF-8',
+        data: JSON.stringify(checkoutRequest),
+        dataType: 'json'
+      }).done(function (checkoutResponse) {
+            if (checkoutResponse.errors && checkoutResponse.errors.length) {
+              myCart = checkoutResponse.cart;
+              //TODO display errors as you see fit.  The example below is NOT suitable for a production checkout.
+              alert(checkoutResponse.errors.join("\n"));
+            } else {
+              location.href = checkoutResponse.redirectToUrl;
+            }
+          });
+    }
+  }
+
+  jQuery(document).ready(function () {
+    jQuery('#orderButton').on('click', saveFieldsAndContinue);
+    // check for any errors that might be parameters to this page.  They will be there if the checkout had errors
+    // during the second stage (i.e. credit card declined.  The parameter name here is specified in the checkoutRequest object abvoe.
+
+    var errors = [];
+    var searchString = window.location.search.substring(1), params = searchString.split("&");
+    for (var i = 0; i < params.length; i++) {
+      var val = params[i].split("=");
+      if (val[0] == 'error') {
+        errors.push(decodeURIComponent(val[1]));
+      }
+    }
+    if (errors.length) {
+      //TODO display these validation errors as you see fit.   The example below is NOT suitable for a production checkout.
+      alert(errors.join("\n"));
+    }
+
+    loadCart();
+  });
+
+</script>
+
+</head>
+
+<body id="home">
+<div id="content">
+  <div class='title-bar'>
+    <h1>Site Title</h1>
+
+    <div>
+      Product description, background image, testimonials fill in the rest of the page.
+
+      <div class='cart-contents hidden'>
+        <table class='cart-contents-table'>
+          <thead>
+          <tr>
+            <th class='product'>Product</th>
+            <th class='summary-description'>&nbsp;</th>
+            <th class='price'>Price</th>
+          </tr>
+          </thead>
+          <tfoot>
+          <tr>
+            <td class='product'>&nbsp;</td>
+            <td class='summary-description'>Subtotal:</td>
+            <td class='price' id="subtotal"></td>
+          </tr>
+          <tr>
+            <td class='product'>&nbsp;</td>
+            <td class='summary-description'>Shipping:</td>
+            <td class='price' id="shipping"></td>
+          </tr>
+          <tr>
+            <td class='product'>&nbsp;</td>
+            <td class='summary-description'>Discount:</td>
+            <td class='price' id="discount"></td>
+          </tr>
+          <tr>
+            <td class='product'>&nbsp;</td>
+            <td class='summary-description'>Total:</td>
+            <td class='price' id="total"></td>
+          </tr>
+
+          </tfoot>
+          <tbody>
+          <!-- this will be replaced with cart contents on load. -->
+          </tbody>
+        </table>
+
+      </div>
+
+
+    </div>
+  </div>
+
+  <div class='form-panel'>
+    <div class='form-header'>
+      <h4>Please Add Your Billing Information</h4>
+    </div>
+
+    <div class='form-row'>
+      <span class='label-span'>Card Number:</span>
+      <span class='field-span'><input class='form-field' type="text" id="cardNumber" maxlength="30"/></span>
+    </div>
+    <div class='form-row'>
+      <span class='label-span'>Card Type:</span>
+      <span class='field-span'>
+        <select class='form-field' id="cardType">
+          <option value="AMEX">AMEX</option>
+          <option value="Discover">Discover</option>
+          <option value="MasterCard">MasterCard</option>
+          <option value="Visa">Visa</option>
+        </select>
+      </span>
+    </div>
+    <div class='form-row'>
+      <span class='label-span'>Expiration:</span>
+      <span class='field-span'>
+        <select id="expirationMonth">
+          <option value='1'>Jan</option>
+          <option value='2'>Feb</option>
+          <option value='3'>Mar</option>
+          <option value='4'>Apr</option>
+          <option value='5'>May</option>
+          <option value='6'>Jun</option>
+          <option value='7'>Jul</option>
+          <option value='8'>Aug</option>
+          <option value='9'>Sep</option>
+          <option value='10'>Oct</option>
+          <option value='11'>Nov</option>
+          <option value='12'>Dec</option>
+        </select>
+
+        <select id="expirationYear">
+          <option value='2013'>2013</option>
+          <option value='2014'>2014</option>
+          <option value='2015'>2015</option>
+          <option value='2016'>2016</option>
+          <option value='2017'>2017</option>
+          <option value='2018'>2018</option>
+          <option value='2019'>2019</option>
+          <option value='2020'>2020</option>
+          <option value='2021'>2021</option>
+          <option value='2022'>2022</option>
+        </select>
+
+      </span>
+    </div>
+    <div class='form-row'>
+      <span class='label-span'>CVV2 Number:</span>
+      <span class='field-span'><input class='form-field' type="text" id="cvv2" maxlength="30"/></span>
+    </div>
+    <div class='form-row certify-row'>
+      <input type="checkbox" id="certify" value='true'/> I certify that I am 18 years of age or older
+      and agree to the <a href='#add_link_here'>terms and conditions</a> of this purchase.
+    </div>
+
+    <div class='form-button-row'>
+      <button id="orderButton"><h1>Place Order</h1></button>
+    </div>
+    <div class='trust-seals'>
+      <em>Security and Trust Seals here</em>
+    </div>
+  </div>
+
+</div>
+
+
+</body>
+</html>
