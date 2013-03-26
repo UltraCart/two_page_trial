@@ -106,6 +106,10 @@
   var myCart = null;
   var cartCookieName = 'UltraCartShoppingCartId'; // the cookie name has a strong convention with UltraCart. Use this cookie name.
   var myServerName = "secure.ultracart.com"; // many merchants have more than one web site.  specify the server name needed to show receipt page.
+  // Please note!  The above server name *MUST* be an UltraCart hosted url.  This server name will be used to 
+  // create the handoff url.  If your web site is hosted by UltraCart, myServerName should point to your server name.
+  // If your web site is hosted separately, i.e. a WordPress site, then myServerName should remain as the default, 'secure.ultracart.com'.
+  
   var paymentMethod = 'Credit Card';
 
   function validate(cart) {
