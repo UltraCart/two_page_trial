@@ -68,7 +68,7 @@
 
     var merchantId = 'DEMO';
     var myCart = null;
-    var cartCookieName = 'UltraCartShoppingCartId'; // the cookie name has a strong convention with UltraCart. Use this cookie name.
+    var cartCookieName = 'UltraCartShoppingCartID'; // the cookie name has a strong convention with UltraCart. Use this cookie name.
     var nextPage = "trial-page2.html";
 
     var myItemId = 'BONE'; // a dog bone.  what are you selling?
@@ -117,8 +117,8 @@
       jQuery.ajax({
         url: 'rest_proxy.php?_url=/rest/cart',
         headers: {
-          'X-UC-Merchant-Id': merchantId,  // could also pass merchant id as query parameter named '_mid' or cookie named 'UltraCartMerchantId'
-          'X-UC-Shopping-Cart-Id': cartId, // could also pass cart id as query parameter named '_cid' or cookie named 'UltraCartShoppingCartId'
+          'X-UC-Merchant-Id': merchantId,  // could also pass merchant id as query parameter named '_mid' or cookie named 'UltraCartMerchantID'
+          'X-UC-Shopping-Cart-Id': cartId, // could also pass cart id as query parameter named '_cid' or cookie named 'UltraCartShoppingCartID'
           // if I am setting this as a cookie, why do the header?  I prefer to be explicit.  It makes debugging easier later on.  easier to track in consoles.
           "cache-control": "no-cache"
         },

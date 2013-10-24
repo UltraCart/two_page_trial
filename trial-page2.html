@@ -104,7 +104,7 @@
 
   var merchantId = 'DEMO';
   var myCart = null;
-  var cartCookieName = 'UltraCartShoppingCartId'; // the cookie name has a strong convention with UltraCart. Use this cookie name.
+  var cartCookieName = 'UltraCartShoppingCartID'; // the cookie name has a strong convention with UltraCart. Use this cookie name.
   var myServerName = "secure.ultracart.com"; // many merchants have more than one web site.  specify the server name needed to show receipt page.
   // Please note!  The above server name *MUST* be an UltraCart hosted url.  This server name will be used to 
   // create the handoff url.  If your web site is hosted by UltraCart, myServerName should point to your server name.
@@ -164,8 +164,8 @@
     jQuery.ajax({
       url: 'rest_proxy.php?_url=/rest/cart',
       headers: {
-        'X-UC-Merchant-Id': merchantId,  // could also pass merchant id as query parameter named '_mid' or cookie named 'UltraCartMerchantId'
-        'X-UC-Shopping-Cart-Id': cartId, // could also pass cart id as query parameter named '_cid' or cookie named 'UltraCartShoppingCartId'
+        'X-UC-Merchant-Id': merchantId,  // could also pass merchant id as query parameter named '_mid' or cookie named 'UltraCartMerchantID'
+        'X-UC-Shopping-Cart-Id': cartId, // could also pass cart id as query parameter named '_cid' or cookie named 'UltraCartShoppingCartID'
         // if I am setting this as a cookie, why do the header?  I prefer to be explicit.  It makes debugging easier later on.  easier to track in consoles.
         "cache-control": "no-cache"
       },
