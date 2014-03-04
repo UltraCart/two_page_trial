@@ -13,6 +13,7 @@ Copy all of the files to your web tree.  Make sure the rest_proxy.php file works
    Test #2:  adjust your url to call this:   rest_proxy.php?_url=/rest/cart, you should receive back this response: "Missing Merchant Id."
 
    Test #3:  call this: rest_proxy.php?_url=/rest/cart&_mid=DEMO, you should receive back the json for an empty cart.
+   underscores not showing up before url and also before mid
    
 *Configuration*
 _______________
