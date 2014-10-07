@@ -220,7 +220,8 @@
         // if I am setting this as a cookie, why do the header?  I prefer to be explicit.  It makes debugging easier later on.  easier to track in consoles.
         "cache-control": "no-cache"
       },
-      dataType: 'json'
+      dataType: 'json',
+      cache: false
     }).done(function (cart) {
           cartToFields(cart);
           displayContents(cart);
@@ -255,7 +256,8 @@
           headers: { "cache-control": "no-cache" },
           contentType: 'application/json; charset=UTF-8',
           data: JSON.stringify(checkoutRequest),
-          dataType: 'json'
+          dataType: 'json',
+          cache: false
         }).done(function (checkoutResponse) {
               if (checkoutResponse.errors && checkoutResponse.errors.length) {
                 myCart = checkoutResponse.cart;
