@@ -1,6 +1,13 @@
 two_page_trial
 ==============
 
+Version 1.1
+===========
+* PCI 3.0 Compliant.  Added support for UltraCart Hosted Fields See: http://docs.ultracart.com/display/ucdoc/UltraCart+PCI+Compliance
+* Added localization.  Removed hard coded dollar signs.  Checkout is now easy to use with other currencies
+* Updated jQuery and JSON to latest versions to support PCI changes.
+* Added labels throughout to eliminate some html validation warnings.
+
 Version 1.0
 ===========
 
