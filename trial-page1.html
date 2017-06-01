@@ -1,271 +1,275 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>(Page 1) Two Page Trial Checkout</title>
-<link rel="stylesheet" href="css/normalize.css">
-<style type='text/css'>
-  #content {
-    width: 90%;
-    margin: 0 auto;
-    font-size: 0.8em;
-    position: relative;
-  }
+    <meta charset="utf-8">
+    <title>(Page 1) Two Page Trial Checkout</title>
+    <link rel="stylesheet" href="css/normalize.css">
+    <style type='text/css'>
+        #content {
+            width: 90%;
+            margin: 0 auto;
+            font-size: 0.8em;
+            position: relative;
+        }
 
-  .form-panel {
-    position: absolute;
-    top: 50px;
-    right: 18px;
-    width: 245px;
-    height: 430px;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 13px;
-    font-weight: bold;
-    color: black;
-    border: 1px solid #C0C0C0;
-    border-radius: 5px;
-    padding: 10px;
-  }
+        .form-panel {
+            position: absolute;
+            top: 50px;
+            right: 18px;
+            width: 245px;
+            height: 430px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            color: black;
+            border: 1px solid #C0C0C0;
+            border-radius: 5px;
+            padding: 10px;
+        }
 
-  .label-span {
-    display: inline-block;
-    width: 100px;
-  }
+        .label-span {
+            display: inline-block;
+            width: 100px;
+        }
 
-  .form-field {
-    width: 120px;
-  }
+        .form-field {
+            width: 120px;
+        }
 
-  .form-row {
-    margin: 3px 0;
-  }
+        .form-row {
+            margin: 3px 0;
+        }
 
-  .trust-seals {
-    margin: 20px 0;
-  }
+        .trust-seals {
+            margin: 20px 0;
+        }
 
-  .form-button-row button {
-    width: 95%;
-  }
-
-
-</style>
-
-<!--[if IE]>
-<script type='text/javascript' src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-<![endif]-->
-<script type="text/javascript" src="js/json3.min.js"></script>
-<script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
-<script type="text/javascript" src="js/jquery.cookie.js"></script>
+        .form-button-row button {
+            width: 95%;
+        }
 
 
-<script type="text/javascript">
-  // Steps
-  // 1. On page load, look for a cart cookie.  If found, load up the cart and fill in the fields
-  // 2. On 'Order Now' click, collect the values, validate them, and store them.  Since this is a
-  //    simple cart, we'll store address information in both 'shipto' and 'billto' fields.
-  // Note: If you are running a cart OFF the UltraCart platform, you will need a relay script due to XSS restrictions.
+    </style>
 
-  var merchantId = 'DEMO';
-  var myCart = null;
-  var cartCookieName = 'UltraCartShoppingCartID'; // the cookie name has a strong convention with UltraCart. Use this cookie name.
-  var nextPage = "trial-page2.html";
-
-  var myItemId = 'BONE'; // a dog bone.  what are you selling?
-  var country = 'United States'; // we're hard coding the country since this is usually a US only cart.
-  var shippingMethod = 'FedEx: 2-Day'; // set the shipping method on the first page so the total is complete on the next page.
-  var shippingCost = 5.99; // the shipping cost is calculated during the final processing, but you may set it to whatever you like here for display purposes.
-  // almost all trial checkouts have a set shipping price, so this works well.  for normal checkouts, we would
-  // query the shipping estimates and use the prices returned back from the server.  That's not needed here.  This is fast.
-  // don't worry about someone changing this.  The final value is calculated server side.
-
-  function clientSideValidate(cart) {
-    //TODO add your validation here.
-    return true;
-  }
-
-  function cartToFields(cart) {
-    jQuery('#firstName').val(cart.shipToFirstName);
-    jQuery('#lastName').val(cart.shipToLastName);
-    jQuery('#email').val(cart.email);
-    jQuery('#phone').val(cart.shipToPhone);
-    jQuery('#address1').val(cart.shipToAddress1);
-    jQuery('#address2').val(cart.shipToAddress2);
-    jQuery('#postalCode').val(cart.shipToPostalCode);
-    jQuery('#city').val(cart.shipToCity);
-    jQuery('#state').val(cart.shipToState);
-  }
-
-  function fieldsToCart(cart) {
-    cart.shipToFirstName = cart.billToFirstName = jQuery.trim(jQuery('#firstName').val());
-    cart.shipToLastName = cart.billToLastName = jQuery.trim(jQuery('#lastName').val());
-    cart.email = jQuery.trim(jQuery('#email').val());
-    cart.shipToPhone = cart.billToDayPhone = cart.billToEveningPhone = cart.shipToEveningPhone = jQuery.trim(jQuery('#phone').val());
-    cart.shipToAddress1 = cart.billToAddress1 = jQuery.trim(jQuery('#address1').val());
-    cart.shipToAddress2 = cart.billToAddress2 = jQuery.trim(jQuery('#address2').val());
-    cart.shipToPostalCode = cart.billToPostalCode = jQuery.trim(jQuery('#postalCode').val());
-    cart.shipToCity = cart.billToCity = jQuery.trim(jQuery('#city').val());
-    cart.shipToState = cart.billToState = jQuery.trim(jQuery('#state').val());
-
-    return cart;
-  }
-
-  function loadCart() {
-    // check for cookie cart id.  load cart, populate fields.
-    var cartId = jQuery.cookie(cartCookieName) || '';
-
-    jQuery.ajax({
-      url: 'rest_proxy.php?_url=/rest/cart',
-      headers: {
-        'X-UC-Merchant-Id': merchantId,  // could also pass merchant id as query parameter named '_mid' or cookie named 'UltraCartMerchantID'
-        'X-UC-Shopping-Cart-Id': cartId, // could also pass cart id as query parameter named '_cid' or cookie named 'UltraCartShoppingCartID'
-        // if I am setting this as a cookie, why do the header?  I prefer to be explicit.  It makes debugging easier later on.  easier to track in consoles.
-        "cache-control": "no-cache"
-      },
-      dataType: 'json',
-      cache: false
-    }).done(function (cart) {
-          cartToFields(cart);
-          myCart = cart;
-          // even if the cookie is already set, set it again.  updates the expiration of it.
-          jQuery.cookie(cartCookieName, cart.cartId, { expires: 7, path: '/' });
-        });
-  }
-
-  function saveFieldsAndContinue() {
-    var cart = myCart; // this should NOT be null.
-    if (!cart) {
-      cart = {merchantId: merchantId};
-    }
-    cart = fieldsToCart(cart);
-    cart.shipToCountry = cart.billToCountry = country;
-    cart.shippingMethod = shippingMethod;
-    cart.shippingHandling = cart.arbitraryShippingHandlingTotal = shippingCost;
-    cart.items = [
-      {itemId: myItemId, quantity: 1}
-    ]; // this will overwrite any items in the cart, so if the customer
-    // backs into this page, they won't receive duplicate items in the cart.
-
-    var button = jQuery('#orderButton');
-    if (clientSideValidate(cart)) {
-
-      // server side validation.  let's be sure.
-      // if you like, implement a call to /rest/cart/validate.
-      // use the following checks: "Shipping Address Provided", "Shipping Validate City State Zip"
-      // see: http://docs.ultracart.com/display/ucdoc/UltraCart+REST+Checkout+API#UltraCartRESTCheckoutAPI-/rest/cart/validate
-
-      button.attr('disabled', true);
-      jQuery.ajax({
-        url: 'rest_proxy.php?_url=/rest/cart',
-        type: 'PUT', // Notice
-        headers: { "cache-control": "no-cache" },
-        contentType: 'application/json; charset=UTF-8',
-        data: JSON.stringify(cart),
-        dataType: 'json',
-        cache: false
-      }).done(function (updatedCart) {
-            location.href = nextPage;
-          }).always(function () {
-            button.attr('disabled', false);
-          });
-    }
-  }
+    <script type="text/javascript" src="js/json3.min.js"></script>
+    <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="js/jquery.cookie.js"></script>
 
 
-  function cityState() {
+    <script type="text/javascript">
+        // Steps
+        // 1. On page load, look for a cart cookie.  If found, load up the cart and fill in the fields
+        // 2. On 'Order Now' click, collect the values, validate them, and store them.  Since this is a
+        //    simple cart, we'll store address information in both 'shipto' and 'billto' fields.
+        // Note: If you are running a cart OFF the UltraCart platform, you will need a relay script due to XSS restrictions.
 
-    var postalCodeField = jQuery('#postalCode');
-    if (!postalCodeField) {
-      return;
-    }
+        var merchantId = 'DEMO';
+        var myCart = null;
+        var cartCookieName = 'UltraCartShoppingCartID'; // the cookie name has a strong convention with UltraCart. Use this cookie name.
+        var nextPage = "trial-page2.html";
 
-    var postalCode = postalCodeField.val();
+        var myItemId = 'Baseball'; // a baseball.  what are you selling?
+        var country = 'United States'; // we're hard coding the country since this is usually a US only cart.
+        var shippingMethod = 'FedEx: 2-Day'; // set the shipping method on the first page so the total is complete on the next page.
+        var shippingCost = 5.99; // the shipping cost is calculated during the final processing, but you may set it to whatever you like here for display purposes.
+        // almost all trial checkouts have a set shipping price, so this works well.  for normal checkouts, we would
+        // query the shipping estimates and use the prices returned back from the server.  That's not needed here.  This is fast.
+        // don't worry about someone changing this.  The final value is calculated server side.
 
-    if (myCart) {
-      myCart.shipToPostalCode = postalCode;
+        function clientSideValidate(cart) {
+            //TODO add your validation here.
+            return true;
+        }
 
-      jQuery.ajax({
-        url: 'rest_proxy.php?_url=/rest/cart/cityState',
-        type: 'POST', // Notice
-        headers: { "cache-control": "no-cache" },
-        contentType: 'application/json; charset=UTF-8',
-        data: JSON.stringify(myCart),
-        dataType: 'json',
-        cache: false
-      }).done(function (cityStateZip) {
+        function cartToFields(cart) {
+            jQuery('#firstName').val(cart.shipToFirstName);
+            jQuery('#lastName').val(cart.shipToLastName);
+            jQuery('#email').val(cart.email);
+            jQuery('#phone').val(cart.shipToPhone);
+            jQuery('#address1').val(cart.shipToAddress1);
+            jQuery('#address2').val(cart.shipToAddress2);
+            jQuery('#postalCode').val(cart.shipToPostalCode);
+            jQuery('#city').val(cart.shipToCity);
+            jQuery('#state').val(cart.shipToState);
+        }
 
-            // update the cart and the fields.
-            if (cityStateZip && cityStateZip.validZip) {
-              myCart.shipToState = cityStateZip.state;
-              myCart.shipToCity = cityStateZip.city;
-              jQuery('#city').val(myCart.shipToCity);
-              jQuery('#state').val(myCart.shipToState);
+        function fieldsToCart(cart) {
+            cart.shipToFirstName = cart.billToFirstName = jQuery.trim(jQuery('#firstName').val());
+            cart.shipToLastName = cart.billToLastName = jQuery.trim(jQuery('#lastName').val());
+            cart.email = jQuery.trim(jQuery('#email').val());
+            cart.shipToPhone = cart.billToDayPhone = cart.billToEveningPhone = cart.shipToEveningPhone = jQuery.trim(jQuery('#phone').val());
+            cart.shipToAddress1 = cart.billToAddress1 = jQuery.trim(jQuery('#address1').val());
+            cart.shipToAddress2 = cart.billToAddress2 = jQuery.trim(jQuery('#address2').val());
+            cart.shipToPostalCode = cart.billToPostalCode = jQuery.trim(jQuery('#postalCode').val());
+            cart.shipToCity = cart.billToCity = jQuery.trim(jQuery('#city').val());
+            cart.shipToState = cart.billToState = jQuery.trim(jQuery('#state').val());
+
+            return cart;
+        }
+
+        function loadCart() {
+            // check for cookie cart id.  load cart, populate fields.
+            var cartId = jQuery.cookie(cartCookieName) || '';
+
+            jQuery.ajax({
+                url: 'https://api.ultracart.com/rest/cart',
+                headers: {
+                    'X-UC-Merchant-Id': merchantId,  // could also pass merchant id as query parameter named '_mid' or cookie named 'UltraCartMerchantID'
+                    // 'X-UC-Shopping-Cart-Id': (jQuery.cookie(window.cartCookieName || 'UltraCartShoppingCartID') || ''),
+                    'X-UC-Shopping-Cart-Id': cartId, // Because CORS is used, this is a requirement.
+                    "cache-control": "no-cache"
+                },
+                dataType: 'json',
+                cache: false
+            }).done(function (cart) {
+                cartToFields(cart);
+                myCart = cart;
+                // even if the cookie is already set, set it again.  updates the expiration of it.
+                jQuery.cookie(cartCookieName, cart.cartId, {expires: 7, path: '/'});
+            });
+        }
+
+        function saveFieldsAndContinue() {
+            var cart = myCart; // this should NOT be null.
+            if (!cart) {
+                cart = {merchantId: merchantId};
             }
-          });
-    }
+            cart = fieldsToCart(cart);
+            cart.shipToCountry = cart.billToCountry = country;
+            cart.shippingMethod = shippingMethod;
+            cart.shippingHandling = cart.arbitraryShippingHandlingTotal = shippingCost;
+            cart.items = [
+                {itemId: myItemId, quantity: 1}
+            ]; // this will overwrite any items in the cart, so if the customer
+            // backs into this page, they won't receive duplicate items in the cart.
 
-  }
+            var button = jQuery('#orderButton');
+            if (clientSideValidate(cart)) {
 
-  jQuery(document).ready(function () {
-    jQuery('#postalCode').on('blur', cityState);
-    jQuery('#orderButton').on('click', saveFieldsAndContinue);
-    loadCart();
-  });
+                // server side validation.  let's be sure.
+                // if you like, implement a call to /rest/cart/validate.
+                // use the following checks: "Shipping Address Provided", "Shipping Validate City State Zip"
+                // see: http://docs.ultracart.com/display/ucdoc/UltraCart+REST+Checkout+API#UltraCartRESTCheckoutAPI-/rest/cart/validate
 
-</script>
+                button.attr('disabled', true);
+                jQuery.ajax({
+                    url: 'https://api.ultracart.com/rest/cart',
+                    type: 'PUT', // Notice
+                    headers: {"cache-control": "no-cache"},
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(cart),
+                    dataType: 'json',
+                    cache: false
+                }).done(function (updatedCart) {
+                    // nothing is done here because the cookie is already stored from earlier.  the next page
+                    // will load the updated cart from the server.
+                    location.href = nextPage;
+                }).always(function () {
+                    button.attr('disabled', false);
+                });
+            }
+        }
+
+
+        function cityState() {
+
+            var postalCodeField = jQuery('#postalCode');
+            if (!postalCodeField) {
+                return;
+            }
+
+            var postalCode = postalCodeField.val();
+
+            if (myCart) {
+                myCart.shipToPostalCode = postalCode;
+
+                jQuery.ajax({
+                    url: 'https://api.ultracart.com/rest/cart/cityState',
+                    type: 'POST', // Notice
+                    headers: {
+                        'X-UC-Merchant-Id': merchantId,  // could also pass merchant id as query parameter named '_mid' or cookie named 'UltraCartMerchantID'
+                        // Because CORS is used, this is a requirement.
+                        'X-UC-Shopping-Cart-Id': (jQuery.cookie(window.cartCookieName || 'UltraCartShoppingCartID') || ''),
+                        "cache-control": "no-cache"
+                    },
+                    contentType: 'application/json; charset=UTF-8',
+                    data: JSON.stringify(myCart),
+                    dataType: 'json',
+                    cache: false
+                }).done(function (cityStateZip) {
+
+                    // update the cart and the fields.
+                    if (cityStateZip && cityStateZip.validZip) {
+                        myCart.shipToState = cityStateZip.state;
+                        myCart.shipToCity = cityStateZip.city;
+                        jQuery('#city').val(myCart.shipToCity);
+                        jQuery('#state').val(myCart.shipToState);
+                    }
+                });
+            }
+
+        }
+
+        jQuery(document).ready(function () {
+            jQuery('#postalCode').on('blur', cityState);
+            jQuery('#orderButton').on('click', saveFieldsAndContinue);
+            loadCart();
+        });
+
+    </script>
 
 </head>
 
 <body id="home">
 <div id="content">
-  <div class='title-bar'>
-    <h1>Site Title</h1>
+    <div class='title-bar'>
+        <h1>Site Title</h1>
 
-    <div>
-      Product description, background image, testimonials fill in the rest of the page.
-    </div>
-  </div>
-
-  <div class='form-panel'>
-    <div class='form-header'>
-      <h4>Tell us where to send your package</h4>
+        <div>
+            Product description, background image, testimonials fill in the rest of the page.
+        </div>
     </div>
 
-    <div class='form-row'>
-      <span class='label-span'><label for="firstName">First Name:</label></span>
-      <span class='field-span'><input class='form-field' type="text" id="firstName" maxlength="30"/></span>
-    </div>
-    <div class='form-row'>
-      <span class='label-span'><label for="lastName">Last Name:</label></span>
-      <span class='field-span'><input class='form-field' type="text" id="lastName" maxlength="30"/></span>
-    </div>
-    <div class='form-row'>
-      <span class='label-span'><label for="email">Email:</label></span>
-      <span class='field-span'><input class='form-field' type="text" id="email" maxlength="30"/></span>
-    </div>
-    <div class='form-row'>
-      <span class='label-span'><label for="phone">Phone:</label></span>
-      <span class='field-span'><input class='form-field' type="text" id="phone" maxlength="30"/></span>
-    </div>
-    <div class='form-row'>
-      <span class='label-span'><label for="address1">Address 1:</label></span>
-      <span class='field-span'><input class='form-field' type="text" id="address1" maxlength="30"/></span>
-    </div>
-    <div class='form-row'>
-      <span class='label-span'><label for="address2">Address 2:</label></span>
-      <span class='field-span'><input class='form-field' type="text" id="address2" maxlength="30"/></span>
-    </div>
-    <div class='form-row'>
-      <span class='label-span'><label for="postalCode">Zip:</label></span>
-      <span class='field-span'><input class='form-field' type="text" id="postalCode" maxlength="30"/></span>
-    </div>
-    <div class='form-row'>
-      <span class='label-span'><label for="city">City:</label></span>
-      <span class='field-span'><input class='form-field' type="text" id="city" maxlength="30"/></span>
-    </div>
-    <div class='form-row'>
-      <span class='label-span'><label for="state">State:</label></span>
-      <span class='field-span'>
+    <div class='form-panel'>
+        <div class='form-header'>
+            <h4>Tell us where to send your package</h4>
+        </div>
+
+        <div class='form-row'>
+            <span class='label-span'><label for="firstName">First Name:</label></span>
+            <span class='field-span'><input class='form-field' id="firstName" maxlength="30"/></span>
+        </div>
+        <div class='form-row'>
+            <span class='label-span'><label for="lastName">Last Name:</label></span>
+            <span class='field-span'><input class='form-field' id="lastName" maxlength="30"/></span>
+        </div>
+        <div class='form-row'>
+            <span class='label-span'><label for="email">Email:</label></span>
+            <span class='field-span'><input class='form-field' id="email" maxlength="30"/></span>
+        </div>
+        <div class='form-row'>
+            <span class='label-span'><label for="phone">Phone:</label></span>
+            <span class='field-span'><input class='form-field' id="phone" maxlength="30"/></span>
+        </div>
+        <div class='form-row'>
+            <span class='label-span'><label for="address1">Address 1:</label></span>
+            <span class='field-span'><input class='form-field' id="address1" maxlength="30"/></span>
+        </div>
+        <div class='form-row'>
+            <span class='label-span'><label for="address2">Address 2:</label></span>
+            <span class='field-span'><input class='form-field' id="address2" maxlength="30"/></span>
+        </div>
+        <div class='form-row'>
+            <span class='label-span'><label for="postalCode">Zip:</label></span>
+            <span class='field-span'><input class='form-field' id="postalCode" maxlength="30"/></span>
+        </div>
+        <div class='form-row'>
+            <span class='label-span'><label for="city">City:</label></span>
+            <span class='field-span'><input class='form-field' id="city" maxlength="30"/></span>
+        </div>
+        <div class='form-row'>
+            <span class='label-span'><label for="state">State:</label></span>
+            <span class='field-span'>
 
         <select class='form-field' id="state">
           <option value="AL">Alabama</option>
@@ -322,15 +326,15 @@
           <option value="WY">Wyoming</option>
         </select>
       </span>
-    </div>
+        </div>
 
-    <div class='form-button-row'>
-      <button id="orderButton"><h1>Order Now</h1></button>
+        <div class='form-button-row'>
+            <button id="orderButton"><h1>Order Now</h1></button>
+        </div>
+        <div class='trust-seals'>
+            <em>Security and Trust Seals here</em>
+        </div>
     </div>
-    <div class='trust-seals'>
-      <em>Security and Trust Seals here</em>
-    </div>
-  </div>
 
 </div>
 

@@ -1,19 +1,17 @@
+A simple two page checkout geared toward trial offers.
+
 #### Demo
-A demo is [here](http://secure.ultracart.com/merchant/integrationcenter/checkoutapi_v3/demos/two_page_trial/trial-page1.html).  It contains hard coded instructions to add a dog bone to a dummy account 'DEMO'.  To complete the checkout, use a Visa card 4444333322221111 with any future expiration and any CVV (try 123).
+A demo is [here](http://secure.ultracart.com/merchant/integrationcenter/checkoutapi_v3/demos/two_page_trial/trial-page1.html).  It adds a baseball to a dummy account 'DEMO'.  To complete the checkout, use a Visa card 4444333322221111 with any future expiration and any CVV (try 123).
 
 #### Introduction
-The UltraCart Two Page Trial checkout contains bare bones reference implementation of a javascript based checkout built on the [UltraCart REST API](http://docs.ultracart.com/display/ucdoc/UltraCart+REST+Checkout+API).  This checkout is popular among merchants offering trial offers tied to recurring orders.  There is a [working demo](http://secure.ultracart.com/merchant/integrationcenter/checkoutapi_v3/demos/two_page_trial/trial-page1.html) hosted on the UltraCart servers.  Do not download that version.  It is modified slightly to run on our non-PHP servers.  See the Getting Started section for instructions on setting up your own site.
+The UltraCart Two Page Trial checkout contains bare bones reference implementation of a javascript based checkout built on the [UltraCart REST API](http://docs.ultracart.com/display/ucdoc/UltraCart+REST+Checkout+API).  
+
+This checkout is popular among merchants offering trial offers tied to recurring orders.  There is a [working demo](http://secure.ultracart.com/merchant/integrationcenter/checkoutapi_v3/demos/two_page_trial/trial-page1.html) 
+hosted on the UltraCart servers.  Do not download that version.  It is modified slightly to run on our non-PHP servers.  See the Getting Started section for instructions on setting up your own site.
 
 ### Getting Started
 1. Download the latest release.
-2. Copy all of the files to your web tree.  Make sure the rest_proxy.php file works by calling it directly from your web browser.
-
-   |URL|Expected Result|
-   |---|---------------|
-   |```rest_proxy.php```|"UltraCart rest proxy script called incorrectly.  _url query parameter is required.|
-   |```rest_proxy.php?_url=/rest/cart```|"Missing Merchant Id."|
-   |```rest_proxy.php?_url=/rest/cart&_mid=DEMO```|you should receive back the json for an empty cart|
-
+2. Copy all of the files to your web tree. 
 3. Edit trial-page1.html and set these javascript variables:
    * merchantId
    * nextPage
@@ -21,25 +19,33 @@ The UltraCart Two Page Trial checkout contains bare bones reference implementati
    * shippingMethod
    * shippingCost
 
-4. Edit trial-page1.html and implement validate() to perform whatever checks you desire.
+4. Edit trial-page1.html and implement validate() to perform whatever client side form validation you desire.
    
 5. Edit trial-page2.html and set these javascript variables:
    * merchantId
    * serverName
 
-6. Edit trial-page2.html and implement validate() to perform whatever checks you desire.
-7. Error handling: find all occurances of 'alert' and implement a means of displaying errors to the customer.
+6. Edit trial-page2.html and implement validate() to perform whatever client side validation you desire.
+7. Error handling: find all occurrences of 'alert' and implement a means of displaying errors to the customer.
 8. Terms and Conditions link:  Search for 'add_link_here' and add a link to your terms and conditions.
 
+#### Changelog
+###### Version 2.0
 
-#### Version 1.1
+_This version will now run without any PHP support._
+
+* The rest_proxy.php script is gone.  This checkout now uses CORS alone to communicate with UltraCart servers.
+* Upgrade jQuery
+* Slight changes to the form field layout on the 2nd page to ensure the hosted fields did not mess up layout.
+
+###### Version 1.1
 
 * PCI 3.0 Compliant.  Added support for UltraCart Hosted Fields See: http://docs.ultracart.com/display/ucdoc/UltraCart+Hosted+Credit+Card+Fields
 * Added localization.  Removed hard coded dollar signs.  Checkout is now easy to use with other currencies
 * Updated jQuery and JSON to latest versions to support PCI changes.
 * Added labels throughout to eliminate some html validation warnings.
 
-#### Version 1.0
+###### Version 1.0
 
 Of this release, the changes in the rest_proxy.php script are most important.
 Please upgrade your rest_proxy.php scripts as soon as possible.  Doing so will prevent issues with your site.  Additionally,
@@ -57,4 +63,3 @@ rest_proxy.php changes:
 * Add a proxy version number to the header so we can tell from the server side if people are running out of date proxy
 
 
-A simple two page checkout geared toward trial offers.
