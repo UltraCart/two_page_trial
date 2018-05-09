@@ -1,7 +1,7 @@
 /*! JSON v3.3.2 | http://bestiejs.github.io/json3 | Copyright 2012-2014, Kit Cambridge | http://kit.mit-license.org */
 ;(function () {
   // Detect the `define` function exposed by asynchronous module loaders. The
-  // strict `define` check is necessary for compatibility with `r.js`.
+  // strict `define` check is necessary for compatibility with `r.scripts`.
   var isLoader = typeof define === "function" && define.amd;
 
   // A set of types used to distinguish objects from primitives.

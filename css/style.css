@@ -1,64 +1,159 @@
 #content {
-  width: 90%;
-  margin: 0 auto;
-  font-size: 0.8em;
+    width: 90%;
+    margin: 0 auto;
+    font-size: 0.8em;
+    position: relative;
 }
 
 .comments {
-  font-style: italic;
+    font-style: italic;
 }
 
 h1 {
-  font-size: 1.5em;
+    font-size: 1.5em;
 }
 
 .demo {
-  border: 1px solid #E0E0E0;
-  border-radius: 5px;
-  margin-bottom: 20px;
+    border: 1px solid #E0E0E0;
+    border-radius: 5px;
+    margin-bottom: 20px;
 }
 
 .title {
-  margin-top: 0;
-  background-color: #E0E0E0;
-  padding: 10px 5px;
+    margin-top: 0;
+    background-color: #E0E0E0;
+    padding: 10px 5px;
 }
 
 .details {
-  padding: 10px;
+    padding: 10px;
 }
 
 .results {
-  margin: 10px 0;
+    margin: 10px 0;
 
 }
 
 .results pre {
-  font-family: "Consolas", "Bitstream Vera Sans Mono", "Courier New", Courier, monospace;
-}
-.validation-options-table td{
-  padding-left: 3px;
-  padding-right: 3px;
+    font-family: "Consolas", "Bitstream Vera Sans Mono", "Courier New", Courier, monospace;
 }
 
-.validation-options{
-  margin-top: 10px;
+.validation-options-table td {
+    padding-left: 3px;
+    padding-right: 3px;
 }
 
-.comments{
-  margin: 0 5px;
+.validation-options {
+    margin-top: 10px;
 }
 
-.address-fields td{
-  vertical-align: top;
+.comments {
+    margin: 0 5px;
 }
 
-.customer-section .step{
-  margin-top: 25px;
+.address-fields td {
+    vertical-align: top;
 }
 
-.customer-section .label{
-  display: inline-block;
-  padding-right: 5px;
-  width: 60px;
+.customer-section .step {
+    margin-top: 25px;
 }
+
+.customer-section .label {
+    display: inline-block;
+    padding-right: 5px;
+    width: 60px;
+}
+
+#orderButton {
+    font-size: 26px;
+    font-weight: bold;
+    padding-top: 15px;
+    padding-bottom: 15px;
+
+}
+
+#content {
+    width: 90%;
+    margin: 0 auto;
+    font-size: 0.8em;
+    position: relative;
+}
+
+.form-panel {
+    position: absolute;
+    top: 50px;
+    right: 18px;
+    width: 245px;
+    height: 530px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: bold;
+    color: black;
+    border: 1px solid #C0C0C0;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.label-span {
+    display: inline-block;
+    width: 100px;
+}
+
+.cart-contents {
+    border: 1px solid #C0C0C0;
+    border-radius: 5px;
+    padding: 10px;
+    width: 550px;
+    margin-top: 30px;
+}
+
+
+.form-field {
+    width: 125px;
+}
+
+.form-row {
+    margin: 3px 0;
+}
+
+.cvv-field {
+    width: 30px;
+}
+
+.trust-seals {
+    margin: 20px 0;
+}
+
+.form-button-row {
+    text-align: center;
+}
+
+
+.form-button-row button {
+    width: 95%;
+}
+
+.certify-row {
+    font-size: 0.8em;
+}
+
+.hidden {
+    display: none;
+}
+
+.product {
+    text-align: left;
+    width: 400px;
+}
+
+.price {
+    text-align: right;
+    width: 100px;
+}
+
+.summary-description {
+    text-align: right;
+}
+
+

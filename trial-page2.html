@@ -3,119 +3,27 @@
 <head>
     <meta charset="utf-8">
     <title>(Page 2) Two Page Trial Checkout</title>
-    <link rel="stylesheet" href="css/normalize.css">
-    <style type='text/css'>
-        #content {
-            width: 90%;
-            margin: 0 auto;
-            font-size: 0.8em;
-            position: relative;
-        }
+    <link rel="stylesheet" href="build/style.min.css">
 
-        .form-panel {
-            position: absolute;
-            top: 50px;
-            right: 18px;
-            width: 245px;
-            height: 430px;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 13px;
-            font-weight: bold;
-            color: black;
-            border: 1px solid #C0C0C0;
-            border-radius: 5px;
-            padding: 10px;
-        }
-
-        .cart-contents {
-            border: 1px solid #C0C0C0;
-            border-radius: 5px;
-            padding: 10px;
-            width: 550px;
-        }
-
-        .form-field {
-            width: 125px;
-        }
-
-        .cvv-field {
-            width: 30px;
-        }
-
-        .form-row {
-            margin: 3px 0;
-        }
-
-        .certify-row {
-            font-size: 0.8em;
-        }
-
-        .form-button-row {
-            text-align: center;
-        }
-
-        .form-button-row button {
-            width: 95%;
-        }
-
-        .trust-seals {
-            margin: 20px 0;
-        }
-
-        .cart-contents {
-            margin-top: 30px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .product {
-            text-align: left;
-            width: 400px;
-        }
-
-        .price {
-            text-align: right;
-            width: 100px;
-        }
-
-        .summary-description {
-            text-align: right;
-        }
-
-        #orderButton{
-            font-weight: bold;
-            font-size:26px;
-            padding-top:10px;
-            padding-bottom:10px;
-        }
-
-    </style>
-
-    <script type="text/javascript" src="js/json3.min.js"></script>
-    <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
-    <script type="text/javascript" src="js/jquery.cookie.js"></script>
-    <script type="text/javascript" src="//secure.ultracart.com/checkout/checkout-hosted-fields-1.0.js"></script>
-
+    <!--suppress JSUnusedLocalSymbols -->
     <script type="text/javascript">
-        // Steps
-        // 1. On page load, look for a cart cookie.  If found, load up the cart and fill in the fields
-        // 2. On 'Order Now' click, collect the values, validate them, and store them.  Since this is a
-        //    simple cart, we'll store address information in both 'shipto' and 'billto' fields.
-        // Note: If you are running a cart OFF the UltraCart platform, you will need a relay script due to XSS restrictions.
+        // these variables are used by main.js
+        if (!window.uc) {
+            window.uc = {};
+        }
 
-        var merchantId = 'DEMO';
-        var myCart = null;
-        var cartCookieName = 'UltraCartShoppingCartID'; // the cookie name has a strong convention with UltraCart. Use this cookie name.
-        var myServerName = "secure.ultracart.com"; // many merchants have more than one web site.  specify the server name needed to show receipt page.
-        // Please note!  The above server name *MUST* be an UltraCart hosted url.  This server name will be used to
-        // create the handoff url.  If your web site is hosted by UltraCart, myServerName should point to your server name.
-        // If your web site is hosted separately, i.e. a WordPress site, then myServerName should remain as the default, 'secure.ultracart.com'.
-
-        var paymentMethod = 'Credit Card';
+        // See https://ultracart.atlassian.net/wiki/spaces/ucdoc/pages/419364865/Creating+a+Browser+Key+for+a+JavaScript+checkout
+        uc.browserKey = "d7f38666b17e60016306f071d41e3700";
+        uc.cookieName = 'UltraCartShoppingCartID'; // if you don't have a good reason to change this, leave it alone.
+        uc.storeFront = "demo.ultracartstore.com"; // this should be your StoreFront.  It's needed to show the proper look and feel on the receipt.
     </script>
 
+
+    <script type="text/javascript" src="scripts/json3.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery.cookie.js"></script>
+    <script type="text/javascript" src="//secure.ultracart.com/checkout/checkout-hosted-fields-1.0.js"></script>
+    <script type="text/javascript" src="build/bundle.js"></script>
 
     <!-- ===============================================================================    -->
     <!-- BEGIN PCI 3.0 compliance code                                                      -->
@@ -142,7 +50,7 @@
             window.ultraCartHostedFieldsDebugMode = false; // set this to true to see verbose debugging.  usually only UltraCart support will use this.
             hostedFields = UltraCartHostedFields.setup(jQuery, JSON3, {
                 'sessionCredentials': {
-                    'merchantId': merchantId, 'shoppingCartId': myCart.cartId
+                    'merchantId': uc.cart.merchant_id, 'shoppingCartId': uc.cart.cart_id
                 },
 //          'cssUrls':[
 //              'https://www.mysite.com/styles.css'
@@ -177,38 +85,122 @@
 
 
     <script type="text/javascript">
-        function validate(cart) {
-            //TODO add your validation here.
-            //TODO remember to check the "I certify" checkbox here.
-            return true;
+        function clientSideValidate() {
+            var errors = [];
+
+            if (!document.getElementById('certify').checked) {
+                errors.push("Please agree to terms and conditions.");
+            }
+
+            var payment = new uc.sdk.CartPayment();
+            if (uc.cart && uc.cart.payment && uc.cart.payment) {
+                payment = uc.cart.payment;
+            } else {
+                uc.cart.payment = payment;
+            }
+
+            var cc = new uc.sdk.CartPaymentCreditCard();
+            if (payment.credit_card) {
+                cc = payment.credit_card
+            } else {
+                payment.credit_card = cc;
+            }
+
+
+            if (!cc.card_type) {
+                errors.push('Please select your card type.');
+            }
+            if (!cc.card_number) {
+                errors.push('Please provide your card number');
+            }
+            if (!cc.card_verification_number) {
+                errors.push('Please provide your cvv2 number');
+            }
+            if (!cc.card_expiration_month) {
+                errors.push('Please select your expiration month');
+            }
+            if (!cc.card_expiration_year) {
+                errors.push('Please select your expiration year');
+            }
+
+            if (errors.length) {
+                uc.displayCheckoutErrors(errors);
+                return false;
+            } else {
+                return true;
+            }
         }
 
 
         function cartToFields(cart) {
-            jQuery('#cardNumber').val(cart.creditCardNumber);
-            jQuery('#cardType').val(cart.creditCardType);
-            jQuery('#expirationMonth').val(cart.creditCardExpirationMonth);
-            jQuery('#expirationYear').val(cart.creditCardExpirationYear);
-            jQuery('#cvv2').val(cart.creditCardVerificationNumber);
+            var payment = null;
+            if (cart.payment) {
+                payment = cart.payment;
+            } else {
+                payment = cart.payment = new uc.sdk.CartPayment();
+            }
+
+            var cc = null;
+            if (payment.credit_card) {
+                cc = payment.credit_card;
+            } else {
+                cc = payment.credit_card = new uc.sdk.CartPaymentCreditCard();
+            }
+
+            payment.payment_method = 'Credit Card';
+
+            jQuery('#cardNumber').val(cc.card_number || '');
+            jQuery('#cardType').val(cc.card_type || '');
+            jQuery('#expirationMonth').val(cc.card_expiration_month);
+            jQuery('#expirationYear').val(cc.card_expiration_year);
+            jQuery('#cvv2').val(cc.card_verification_number || '');
         }
 
         function fieldsToCart(cart) {
-            cart.creditCardNumber = jQuery.trim(jQuery('#cardNumber').val());
-            cart.creditCardType = jQuery.trim(jQuery('#cardType').val());
-            cart.creditCardExpirationMonth = jQuery.trim(jQuery('#expirationMonth').val());
-            cart.creditCardExpirationYear = jQuery.trim(jQuery('#expirationYear').val());
-            cart.creditCardVerificationNumber = jQuery.trim(jQuery('#cvv2').val());
+
+            var payment = null;
+            if (cart.payment) {
+                payment = cart.payment;
+            } else {
+                payment = cart.payment = new uc.sdk.CartPayment();
+            }
+
+            var cc = null;
+            if (payment.credit_card) {
+                cc = payment.credit_card;
+            } else {
+                cc = payment.credit_card = new uc.sdk.CartPaymentCreditCard();
+            }
+
+            cc.card_number = jQuery.trim(jQuery('#cardNumber').val());
+            cc.card_type = jQuery.trim(jQuery('#cardType').val());
+            cc.card_expiration_month = parseInt(jQuery.trim(jQuery('#expirationMonth').val()));
+            cc.card_expiration_year = parseInt(jQuery.trim(jQuery('#expirationYear').val()));
+            cc.card_verification_number = jQuery.trim(jQuery('#cvv2').val());
 
             return cart;
         }
 
         function displayContents(cart) {
-            var discount = cart.subtotalDiscountLocalized + cart.shippingHandlingDiscountLocalized;
 
-            jQuery('#subtotal').text(cart.subtotalLocalizedFormatted);
-            jQuery('#shipping').text(cart.shippingHandlingWithDiscountLocalizedFormatted);
-            jQuery('#discount').text(formatMoney(discount, cart.currencyCode));
-            jQuery('#total').text(cart.subtotalLocalizedFormatted);
+            var summary = cart.summary || new uc.sdk.CartSummary();
+
+            var discount = 0;
+            if (summary.subtotal_discount && summary.subtotal_discount.localized) {
+                discount += summary.subtotal_discount.localized;
+            }
+            if (summary.shipping_handling_discount && summary.shipping_handling_discount.localized) {
+                discount += summary.shipping_handling_discount.localized;
+            }
+
+            var subtotal = summary.subtotal ? (summary.subtotal.localized_formatted || '') : "";
+            var shippingHandling = summary.shipping_handling ? (summary.shipping_handling.localized_formatted || '') : "";
+            var total = summary.total ? (summary.total.localized_formatted || '') : "";
+
+            jQuery('#subtotal').text(subtotal);
+            jQuery('#shipping').text(shippingHandling);
+            jQuery('#discount').text(uc.formatMoney(discount, cart.currency_code));
+            jQuery('#total').text(total);
 
             if (cart.items && cart.items.length) {
                 var html = '';
@@ -216,11 +208,11 @@
                     var item = cart.items[i];
 
                     var description = item.description;
-                    if (item.defaultThumbnailUrl) {
-                        description += "<br><img src='" + item.defaultThumbnailUrl + "'>";
+                    if (item.default_thumbnail_url) {
+                        description += "<br><img src='" + item.default_thumbnail_url + "'>";
                     }
 
-                    html += '<tr><td class="product">' + description + '</td><td  class="summary-description">&nbsp;</td><td class="price">' + item.unitCostLocalizedFormatted + '</td></tr>';
+                    html += '<tr><td class="product">' + description + '</td><td  class="summary-description">&nbsp;</td><td class="price">' + item.unit_cost.localized_formatted + '</td></tr>';
                 }
                 jQuery('.cart-contents-table tbody').html(html);
             }
@@ -228,162 +220,66 @@
             jQuery('.cart-contents').removeClass('hidden');
         }
 
-        function loadCart() {
-            // check for cookie cart id.  load cart, populate fields.
-            var cartId = jQuery.cookie(cartCookieName) || '';
 
-            jQuery.ajax({
-                url: 'https://api.ultracart.com/rest/cart',
-                headers: {
-                    'X-UC-Merchant-Id': merchantId,  // could also pass merchant id as query parameter named '_mid' or cookie named 'UltraCartMerchantID'
-                    'X-UC-Shopping-Cart-Id': cartId, // could also pass cart id as query parameter named '_cid' or cookie named 'UltraCartShoppingCartID'
-                    // if I am setting this as a cookie, why do the header?  I prefer to be explicit.  It makes debugging easier later on.  easier to track in consoles.
-                    "cache-control": "no-cache"
-                },
-                dataType: 'json',
-                cache: false
-            }).done(function (cart) {
-                teardownSecureCreditCardFields(); // won't do anything the first time called.
-                cartToFields(cart);
-                displayContents(cart);
-                myCart = cart;
-                setupSecureCreditCardFields();
-                // even if the cookie is already set, set it again.  updates the expiration of it.
-                jQuery.cookie(cartCookieName, cart.cartId, {expires: 7, path: '/'});
-            });
+        function runOnSuccessfulLoadCart() {
+            teardownSecureCreditCardFields(); // won't do anything the first time called.
+            cartToFields(uc.cart);
+            displayContents(uc.cart);
+            setupSecureCreditCardFields();
         }
 
 
         function saveFieldsAndContinue() {
-            var cart = myCart; // this should NOT be null.
-            if (!cart) {
-                cart = {merchantId: merchantId};
+            uc.clearCheckoutErrors();
+
+            // this should NOT happen.
+            if (!uc.cart) {
+                uc.cart = new uc.sdk.Cart();
             }
-            cart = fieldsToCart(cart);
-            cart.paymentMethod = paymentMethod;
+            uc.cart = fieldsToCart(uc.cart);
 
 
-            var checkoutRequest = {
-                'cart': cart,
-                errorParameterName: 'error',
-                errorReturnUrl: document.URL,
-                secureHostName: myServerName
-            };
-            if (validate(cart)) {
-                jQuery.ajax({
-                    url: 'https://api.ultracart.com/rest/cart/checkout',
-                    type: 'POST', // Notice
-                    headers: {"cache-control": "no-cache"},
-                    contentType: 'application/json; charset=UTF-8',
-                    data: JSON.stringify(checkoutRequest),
-                    dataType: 'json',
-                    cache: false
-                }).done(function (checkoutResponse) {
-                    if (checkoutResponse.errors && checkoutResponse.errors.length) {
-                        myCart = checkoutResponse.cart;
-                        //TODO display errors as you see fit.  The example below is NOT suitable for a production checkout.
-                        alert(checkoutResponse.errors.join("\n"));
-                    } else {
-                        location.href = checkoutResponse.redirectToUrl;
+            var button = jQuery('#orderButton');
+            if (clientSideValidate()) {
+
+                var handoffRequest = new uc.sdk.CheckoutHandoffRequest();
+                handoffRequest.cart = uc.cart;
+                handoffRequest.error_parameter_name = "error"; // any errors will be returned to this page as this http parameter
+                handoffRequest.error_return_url = document.URL; // any errors should return to this same page.
+                handoffRequest.secure_host_name = uc.storeFront; // needed to show the correct branding on the receipt and manage upsells
+                handoffRequest.operation = 'checkout';
+
+                // server side validation.  let's be sure.
+                // if you like, implement a call to /rest/cart/validate.
+                // use the following checks: "Shipping Address Provided", "Shipping Validate City State Zip"
+                // see: http://docs.ultracart.com/display/ucdoc/UltraCart+REST+Checkout+API#UltraCartRESTCheckoutAPI-/rest/cart/validate
+
+                button.attr('disabled', true);
+                var callback = function (error, data, response) {
+                    button.attr('disabled', false);
+
+
+                    // check for http errors (communication, authorization)
+                    if (error) {
+                        if (response && response.text) {
+                            uc.displayServerErrors(response.text);
+                        } else {
+                            console.error(error);
+                        }
+
+                    } else if (data && data.redirect_to_url) {
+                        // This is our success condition.  A redirect url means that everything validated properly
+                        // and the handoff has taken place.
+                        location.href = data.redirect_to_url;
+
+                    } else if (data.errors) {
+                        uc.displayCheckoutErrors(data.errors);
                     }
-                });
+
+                };
+
+                uc.checkoutApi.handoffCart(handoffRequest, {expand: uc.expansion}, callback);
             }
-
-        }
-
-
-        /**
-         * helper method designed to allow for money calculations on the client side.
-         * Only those currencies supported by UltraCart are implemented here.
-         * @param amount amount to be formatted
-         * @param currencyCode the desired currency code
-         * @return {*} A string formatted in the desired currency.
-         */
-        function formatMoney(amount, currencyCode) {
-            if (isNaN(amount)) {
-                return "";
-            }
-
-            // if we don't have a currency code, there's nothing to do here.
-            if (!currencyCode) {
-                return amount.toFixed(2);
-            }
-
-            /**
-             * takes a number and adds thousandths separators
-             * @param n
-             * @param thouSep thousandth separator, usually a comma
-             * @param decSep decimal separator, usually a period
-             * @return {string}
-             */
-            function numberWithSeparators(n, thouSep, decSep) {
-                var parts = n.toString().split(decSep);
-                return parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thouSep) + (parts[1] ? decSep + parts[1] : "");
-            }
-
-            var formats = {
-                "AUD": {'prefix': '$', 'thousandth': ',', 'decimalSeparator': '.', suffix: ' AUD', 'fractionDigits': 2},
-                "BRL": {'prefix': 'R$', 'thousandth': ',', 'decimalSeparator': '.', suffix: '', 'fractionDigits': 2},
-                "CAD": {'prefix': '$', 'thousandth': ',', 'decimalSeparator': '.', suffix: ' CAD', 'fractionDigits': 2},
-                "CHF": {'prefix': '', 'thousandth': ',', 'decimalSeparator': '.', suffix: ' Sfr', 'fractionDigits': 2},
-                "EUR": {
-                    'prefix': '',
-                    'thousandth': '.',
-                    'decimalSeparator': ',',
-                    suffix: ' ' + '\u20AC',
-                    'fractionDigits': 2
-                },
-                "GBP": {
-                    'prefix': '\u00A3',
-                    'thousandth': ',',
-                    'decimalSeparator': '.',
-                    suffix: '',
-                    'fractionDigits': 2
-                },
-                "JPY": {
-                    'prefix': '\u00A5',
-                    'thousandth': ',',
-                    'decimalSeparator': '.',
-                    suffix: '',
-                    'fractionDigits': 0
-                },
-                "MXN": {'prefix': '$', 'thousandth': ',', 'decimalSeparator': '.', suffix: ' MXN', 'fractionDigits': 2},
-                "NOK": {'prefix': 'kr', 'thousandth': ',', 'decimalSeparator': '.', suffix: '', 'fractionDigits': 2},
-                "NZD": {'prefix': '$', 'thousandth': ',', 'decimalSeparator': '.', suffix: ' NZD', 'fractionDigits': 2},
-                "RUB": {
-                    'prefix': '',
-                    'thousandth': ',',
-                    'decimalSeparator': '.',
-                    suffix: ' \u0440\u0443\u0431',
-                    'fractionDigits': 2
-                },
-                "SEK": {'prefix': '', 'thousandth': ',', 'decimalSeparator': '.', suffix: ' Kr', 'fractionDigits': 2},
-                "SGD": {'prefix': '$', 'thousandth': ',', 'decimalSeparator': '.', suffix: ' SGD', 'fractionDigits': 2},
-                "TRY": {'prefix': '', 'thousandth': ',', 'decimalSeparator': '.', suffix: ' YTL', 'fractionDigits': 2},
-                "USD": {'prefix': '$', 'thousandth': ',', 'decimalSeparator': '.', suffix: '', 'fractionDigits': 2}
-            };
-
-            var format = null;
-            if (formats.hasOwnProperty(currencyCode)) {
-                format = formats[currencyCode];
-            }
-
-
-            if (format) {
-                var fixedAmount = amount.toFixed(format.fractionDigits);
-                var fixedAmountStr = fixedAmount.toString();
-                var hasNegativeSign = false;
-
-                if (fixedAmountStr.indexOf('-') === 0) {
-                    hasNegativeSign = true;
-                    fixedAmountStr = fixedAmountStr.substr(1);
-                }
-
-                return (hasNegativeSign ? "-" : "") + format.prefix + numberWithSeparators(fixedAmountStr, format.thousandth, format.decimalSeparator) + format.suffix;
-            }
-
-            return amount.toFixed(2); // nothing to do but fail gracefully.
-
         }
 
 
@@ -401,11 +297,10 @@
                 }
             }
             if (errors.length) {
-                //TODO display these validation errors as you see fit.   The example below is NOT suitable for a production checkout.
-                alert(errors.join("\n"));
+                uc.displayCheckoutErrors();
             }
 
-            loadCart();
+            uc.loadCart(runOnSuccessfulLoadCart);
         });
 
     </script>
@@ -503,19 +398,28 @@
                     </select>
                     <!--suppress HtmlFormInputWithoutLabel -->
                     <select id="expirationYear">
-                        <option value='2015'>2015</option>
-                        <option value='2016'>2016</option>
-                        <option value='2017'>2017</option>
                         <option value='2018'>2018</option>
                         <option value='2019'>2019</option>
                         <option value='2020'>2020</option>
                         <option value='2021'>2021</option>
                         <option value='2022'>2022</option>
-                        <option value='2013'>2023</option>
-                        <option value='2014'>2024</option>
-                        <option value='2013'>2025</option>
-                        <option value='2014'>2026</option>
-
+                        <option value='2023'>2023</option>
+                        <option value='2024'>2024</option>
+                        <option value='2025'>2025</option>
+                        <option value='2026'>2026</option>
+                        <option value='2027'>2027</option>
+                        <option value='2028'>2028</option>
+                        <option value='2029'>2029</option>
+                        <option value='2030'>2030</option>
+                        <option value='2031'>2031</option>
+                        <option value='2032'>2032</option>
+                        <option value='2033'>2033</option>
+                        <option value='2034'>2034</option>
+                        <option value='2035'>2035</option>
+                        <option value='2036'>2036</option>
+                        <option value='2037'>2037</option>
+                        <option value='2038'>2038</option>
+                        <option value='2039'>2039</option>
                     </select>
                 </td>
             </tr>
@@ -525,13 +429,18 @@
             </tr>
         </table>
         <div class='form-row certify-row'>
-            <input type="checkbox" id="certify" value='true'/> <label for="certify">I certify that I am 18 years of age
-            or
-            older and agree to the <!--suppress HtmlUnknownTarget --><a href='#add_link_here'>terms and conditions</a>
-            of this
-            purchase.</label>
+            <input type="checkbox" id="certify" value='true'/> <label for="certify">
+            I certify that I am 18 years of age or older and agree to the
+            <!--suppress HtmlUnknownTarget -->
+            <a href='#add_link_here'>terms and conditions</a>
+            of this purchase.</label>
         </div>
 
+        <div id="checkoutError" class="form-row errorContainer" style="display:none">
+            <p>Checkout Errors</p>
+
+            <div class="errorContent"></div>
+        </div>
 
         <div class='form-button-row'>
             <button id="orderButton">Place Order</button>

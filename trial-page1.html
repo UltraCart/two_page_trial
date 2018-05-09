@@ -3,148 +3,149 @@
 <head>
     <meta charset="utf-8">
     <title>(Page 1) Two Page Trial Checkout</title>
-    <link rel="stylesheet" href="css/normalize.css">
-    <style type='text/css'>
-        #content {
-            width: 90%;
-            margin: 0 auto;
-            font-size: 0.8em;
-            position: relative;
-        }
+    <link rel="stylesheet" href="build/style.min.css">
 
-        .form-panel {
-            position: absolute;
-            top: 50px;
-            right: 18px;
-            width: 245px;
-            height: 430px;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 13px;
-            font-weight: bold;
-            color: black;
-            border: 1px solid #C0C0C0;
-            border-radius: 5px;
-            padding: 10px;
-        }
-
-        .label-span {
-            display: inline-block;
-            width: 100px;
-        }
-
-        .form-field {
-            width: 120px;
-        }
-
-        .form-row {
-            margin: 3px 0;
-        }
-
-        .trust-seals {
-            margin: 20px 0;
-        }
-
-        .form-button-row button {
-            width: 95%;
-        }
-
-
-    </style>
-
-    <script type="text/javascript" src="js/json3.min.js"></script>
-    <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
-    <script type="text/javascript" src="js/jquery.cookie.js"></script>
-
-
+    <!--suppress JSUnusedLocalSymbols -->
     <script type="text/javascript">
-        // Steps
-        // 1. On page load, look for a cart cookie.  If found, load up the cart and fill in the fields
-        // 2. On 'Order Now' click, collect the values, validate them, and store them.  Since this is a
-        //    simple cart, we'll store address information in both 'shipto' and 'billto' fields.
-        // Note: If you are running a cart OFF the UltraCart platform, you will need a relay script due to XSS restrictions.
+        // these variables are used by main.js
+        if (!window.uc) {
+            window.uc = {};
+        }
 
-        var merchantId = 'DEMO';
-        var myCart = null;
-        var cartCookieName = 'UltraCartShoppingCartID'; // the cookie name has a strong convention with UltraCart. Use this cookie name.
+        // See https://ultracart.atlassian.net/wiki/spaces/ucdoc/pages/419364865/Creating+a+Browser+Key+for+a+JavaScript+checkout
+        uc.browserKey = "d7f38666b17e60016306f071d41e3700";
+        uc.cookieName = 'UltraCartShoppingCartID'; // if you don't have a good reason to change this, leave it alone.
+        uc.storeFront = "demo.ultracartstore.com"; // this should be your StoreFront.  It's needed to show the proper look and feel on the receipt.
+
         var nextPage = "trial-page2.html";
-
         var myItemId = 'Baseball'; // a baseball.  what are you selling?
-        var country = 'United States'; // we're hard coding the country since this is usually a US only cart.
-        var shippingMethod = 'FedEx: 2-Day'; // set the shipping method on the first page so the total is complete on the next page.
+        var country = 'US'; // we're hard coding the country since this is usually a US only cart.
+        var shippingMethod = 'USPS: Priority Mail'; // set the shipping method on the first page so the total is complete on the next page.
         var shippingCost = 5.99; // the shipping cost is calculated during the final processing, but you may set it to whatever you like here for display purposes.
         // almost all trial checkouts have a set shipping price, so this works well.  for normal checkouts, we would
         // query the shipping estimates and use the prices returned back from the server.  That's not needed here.  This is fast.
         // don't worry about someone changing this.  The final value is calculated server side.
 
-        function clientSideValidate(cart) {
-            //TODO add your validation here.
-            return true;
+    </script>
+
+    <script type="text/javascript" src="scripts/json3.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="scripts/jquery.cookie.js"></script>
+    <script type="text/javascript" src="build/bundle.js"></script>
+
+    <script type="text/javascript">
+
+        function clientSideValidate() {
+            var errors = [];
+
+            var shipping = uc.cart.shipping || new uc.sdk.CartShipping();
+            var billing = uc.cart.billing || new uc.sdk.CartBilling();
+
+            if (!shipping.first_name) {
+                errors.push('Please provide your First Name');
+            }
+            if (!shipping.last_name) {
+                errors.push('Please provide your Last Name');
+            }
+            if (!billing.email) {
+                errors.push('Please provide your email');
+            }
+            if (!shipping.day_phone) {
+                errors.push('Please provide your Day Phone');
+            }
+            if (!shipping.address1) {
+                errors.push('Please provide your Address');
+            }
+            if (!shipping.postal_code) {
+                errors.push('Please provide your Zip Code');
+            }
+            if (!shipping.city) {
+                errors.push('Please provide your City');
+            }
+            if (!shipping.state_region) {
+                errors.push('Please select your State');
+            }
+
+            if (errors.length) {
+                uc.displayCheckoutErrors(errors);
+                return false;
+            } else {
+                return true;
+            }
         }
 
         function cartToFields(cart) {
-            jQuery('#firstName').val(cart.shipToFirstName);
-            jQuery('#lastName').val(cart.shipToLastName);
-            jQuery('#email').val(cart.email);
-            jQuery('#phone').val(cart.shipToPhone);
-            jQuery('#address1').val(cart.shipToAddress1);
-            jQuery('#address2').val(cart.shipToAddress2);
-            jQuery('#postalCode').val(cart.shipToPostalCode);
-            jQuery('#city').val(cart.shipToCity);
-            jQuery('#state').val(cart.shipToState);
+            if (!cart.shipping) {
+                cart.shipping = new uc.sdk.CartShipping();
+            }
+            var shipping = cart.shipping;
+            if (!cart.billing) {
+                cart.billing = new uc.sdk.CartBilling();
+            }
+            var billing = cart.billing;
+
+            jQuery('#firstName').val(shipping.first_name || '');
+            jQuery('#lastName').val(shipping.last_name || '');
+            jQuery('#email').val(billing.email || '');
+            jQuery('#phone').val(shipping.day_phone || '');
+            jQuery('#address1').val(shipping.address1 || '');
+            jQuery('#address2').val(shipping.address2 || '');
+            jQuery('#postalCode').val(shipping.postal_code || '');
+            jQuery('#city').val(shipping.city || '');
+            jQuery('#state').val(shipping.state_region || '');
         }
 
         function fieldsToCart(cart) {
-            cart.shipToFirstName = cart.billToFirstName = jQuery.trim(jQuery('#firstName').val());
-            cart.shipToLastName = cart.billToLastName = jQuery.trim(jQuery('#lastName').val());
-            cart.email = jQuery.trim(jQuery('#email').val());
-            cart.shipToPhone = cart.billToDayPhone = cart.billToEveningPhone = cart.shipToEveningPhone = jQuery.trim(jQuery('#phone').val());
-            cart.shipToAddress1 = cart.billToAddress1 = jQuery.trim(jQuery('#address1').val());
-            cart.shipToAddress2 = cart.billToAddress2 = jQuery.trim(jQuery('#address2').val());
-            cart.shipToPostalCode = cart.billToPostalCode = jQuery.trim(jQuery('#postalCode').val());
-            cart.shipToCity = cart.billToCity = jQuery.trim(jQuery('#city').val());
-            cart.shipToState = cart.billToState = jQuery.trim(jQuery('#state').val());
+
+            if (!cart.shipping) {
+                cart.shipping = new uc.sdk.CartShipping();
+            }
+            var shipping = cart.shipping;
+            if (!cart.billing) {
+                cart.billing = new uc.sdk.CartBilling();
+            }
+            var billing = cart.billing;
+
+            shipping.first_name = billing.first_name = jQuery.trim(jQuery('#firstName').val());
+            shipping.last_name = billing.last_name = jQuery.trim(jQuery('#lastName').val());
+            billing.email_confirm = billing.email = jQuery.trim(jQuery('#email').val());
+            shipping.day_phone = billing.day_phone = billing.evening_phone = shipping.evening_phone = jQuery.trim(jQuery('#phone').val());
+            shipping.address1 = billing.address1 = jQuery.trim(jQuery('#address1').val());
+            shipping.address2 = billing.address2 = jQuery.trim(jQuery('#address2').val());
+            shipping.postal_code = billing.postal_code = jQuery.trim(jQuery('#postalCode').val());
+            shipping.city = billing.city = jQuery.trim(jQuery('#city').val());
+            shipping.state_region = billing.state_region = jQuery.trim(jQuery('#state').val());
+            shipping.country_code = billing.country_code = country;
 
             return cart;
         }
 
-        function loadCart() {
-            // check for cookie cart id.  load cart, populate fields.
-            var cartId = jQuery.cookie(cartCookieName) || '';
-
-            jQuery.ajax({
-                url: 'https://api.ultracart.com/rest/cart',
-                headers: {
-                    'X-UC-Merchant-Id': merchantId,  // could also pass merchant id as query parameter named '_mid' or cookie named 'UltraCartMerchantID'
-                    // 'X-UC-Shopping-Cart-Id': (jQuery.cookie(window.cartCookieName || 'UltraCartShoppingCartID') || ''),
-                    'X-UC-Shopping-Cart-Id': cartId, // Because CORS is used, this is a requirement.
-                    "cache-control": "no-cache"
-                },
-                dataType: 'json',
-                cache: false
-            }).done(function (cart) {
-                cartToFields(cart);
-                myCart = cart;
-                // even if the cookie is already set, set it again.  updates the expiration of it.
-                jQuery.cookie(cartCookieName, cart.cartId, {expires: 7, path: '/'});
-            });
-        }
 
         function saveFieldsAndContinue() {
-            var cart = myCart; // this should NOT be null.
-            if (!cart) {
-                cart = {merchantId: merchantId};
+            uc.clearCheckoutErrors();
+
+            if (!uc.cart) {
+                uc.cart = new uc.sdk.Cart();
             }
-            cart = fieldsToCart(cart);
-            cart.shipToCountry = cart.billToCountry = country;
-            cart.shippingMethod = shippingMethod;
-            cart.shippingHandling = cart.arbitraryShippingHandlingTotal = shippingCost;
-            cart.items = [
-                {itemId: myItemId, quantity: 1}
-            ]; // this will overwrite any items in the cart, so if the customer
+            uc.cart = fieldsToCart(uc.cart);
+            uc.cart.shipping.shipping_method = shippingMethod;
+
+            if (!uc.cart.summary) {
+                uc.cart.summary = new uc.sdk.CartSummary();
+            }
+            if (!uc.cart.summary.shipping_handling) {
+                uc.cart.summary.shipping_handling = new uc.sdk.Currency();
+            }
+            uc.cart.summary.shipping_handling.value = shippingCost;
+
+            // this will overwrite any items in the cart, so if the customer
             // backs into this page, they won't receive duplicate items in the cart.
+            uc.cart.items = [
+                {item_id: myItemId, quantity: 1}
+            ];
 
             var button = jQuery('#orderButton');
-            if (clientSideValidate(cart)) {
+            if (clientSideValidate()) {
 
                 // server side validation.  let's be sure.
                 // if you like, implement a call to /rest/cart/validate.
@@ -152,21 +153,25 @@
                 // see: http://docs.ultracart.com/display/ucdoc/UltraCart+REST+Checkout+API#UltraCartRESTCheckoutAPI-/rest/cart/validate
 
                 button.attr('disabled', true);
-                jQuery.ajax({
-                    url: 'https://api.ultracart.com/rest/cart',
-                    type: 'PUT', // Notice
-                    headers: {"cache-control": "no-cache"},
-                    contentType: 'application/json; charset=UTF-8',
-                    data: JSON.stringify(cart),
-                    dataType: 'json',
-                    cache: false
-                }).done(function (updatedCart) {
-                    // nothing is done here because the cookie is already stored from earlier.  the next page
-                    // will load the updated cart from the server.
-                    location.href = nextPage;
-                }).always(function () {
+                var callback = function (error, data, response) {
                     button.attr('disabled', false);
-                });
+                    if (error) {
+                        if (response && response.text) {
+                            uc.displayServerErrors(response.text);
+                        } else {
+                            console.error(error);
+                        }
+                    } else {
+                        if (data.errors) {
+                            uc.displayCheckoutErrors(data.errors);
+                        } else {
+                            location.href = nextPage;
+                        }
+                    }
+
+                };
+
+                uc.checkoutApi.updateCart(uc.cart, {expand: uc.expansion}, callback);
             }
         }
 
@@ -180,40 +185,36 @@
 
             var postalCode = postalCodeField.val();
 
-            if (myCart) {
-                myCart.shipToPostalCode = postalCode;
+            if (uc.cart) {
 
-                jQuery.ajax({
-                    url: 'https://api.ultracart.com/rest/cart/cityState',
-                    type: 'POST', // Notice
-                    headers: {
-                        'X-UC-Merchant-Id': merchantId,  // could also pass merchant id as query parameter named '_mid' or cookie named 'UltraCartMerchantID'
-                        // Because CORS is used, this is a requirement.
-                        'X-UC-Shopping-Cart-Id': (jQuery.cookie(window.cartCookieName || 'UltraCartShoppingCartID') || ''),
-                        "cache-control": "no-cache"
-                    },
-                    contentType: 'application/json; charset=UTF-8',
-                    data: JSON.stringify(myCart),
-                    dataType: 'json',
-                    cache: false
-                }).done(function (cityStateZip) {
+                var shipping = uc.cart.shipping;
+                if (!shipping) {
+                    shipping = uc.cart.shipping = new uc.sdk.CartShipping();
+                }
 
-                    // update the cart and the fields.
-                    if (cityStateZip && cityStateZip.validZip) {
-                        myCart.shipToState = cityStateZip.state;
-                        myCart.shipToCity = cityStateZip.city;
-                        jQuery('#city').val(myCart.shipToCity);
-                        jQuery('#state').val(myCart.shipToState);
+                uc.cart.shipping.postal_code = postalCode;
+
+                var callback = function (error, data /*, response*/) {
+                    // do not worry about checking for errors. this call either works or fails silently.
+
+                    // data is a CityStateZip object
+                    if (data && data.validZip) {
+                        shipping.city = data.city;
+                        shipping.state_region = data.state;
+                        jQuery('#city').val(shipping.city);
+                        jQuery('#state').val(shipping.state_region);
+
                     }
-                });
-            }
+                };
 
+                uc.checkoutApi.cityState(uc.cart, callback);
+            }
         }
 
         jQuery(document).ready(function () {
             jQuery('#postalCode').on('blur', cityState);
             jQuery('#orderButton').on('click', saveFieldsAndContinue);
-            loadCart();
+            uc.loadCart(cartToFields);
         });
 
     </script>
@@ -328,8 +329,15 @@
       </span>
         </div>
 
+
+        <div id="checkoutError" class="form-row errorContainer" style="display:none">
+            <p>Checkout Errors</p>
+
+            <div class="errorContent"></div>
+        </div>
+
         <div class='form-button-row'>
-            <button id="orderButton"><h1>Order Now</h1></button>
+            <button id="orderButton">Order Now</button>
         </div>
         <div class='trust-seals'>
             <em>Security and Trust Seals here</em>

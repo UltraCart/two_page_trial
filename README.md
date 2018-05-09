@@ -1,35 +1,37 @@
-A simple two page checkout geared toward trial offers.
+### Introduction
+A simple two page checkout geared toward trial offers.  This checkout is popular among merchants offering trial offers tied to recurring orders.
 
-#### Demo
-A demo is [here](http://secure.ultracart.com/merchant/integrationcenter/checkoutapi_v3/demos/two_page_trial/trial-page1.html).  It adds a baseball to a dummy account 'DEMO'.  To complete the checkout, use a Visa card 4444333322221111 with any future expiration and any CVV (try 123).
-
-#### Introduction
-The UltraCart Two Page Trial checkout contains bare bones reference implementation of a javascript based checkout built on the [UltraCart REST API](http://docs.ultracart.com/display/ucdoc/UltraCart+REST+Checkout+API).  
-
-This checkout is popular among merchants offering trial offers tied to recurring orders.  There is a [working demo](http://secure.ultracart.com/merchant/integrationcenter/checkoutapi_v3/demos/two_page_trial/trial-page1.html) 
-hosted on the UltraCart servers.  Do not download that version.  It is modified slightly to run on our non-PHP servers.  See the Getting Started section for instructions on setting up your own site.
+### Requirements
+For development, you will need:
+* Node.js installed on your computer
+* Gulp.js installed
 
 ### Getting Started
-1. Download the latest release.
-2. Copy all of the files to your web tree. 
-3. Edit trial-page1.html and set these javascript variables:
-   * merchantId
-   * nextPage
-   * myItemId
-   * shippingMethod
-   * shippingCost
+To Use:
 
-4. Edit trial-page1.html and implement validate() to perform whatever client side form validation you desire.
-   
-5. Edit trial-page2.html and set these javascript variables:
-   * merchantId
-   * serverName
+1. Download or clone this project.
+2. From the base directory, run 'npm install'.
+3. Edit both html pages and provide your own browser key.  The one provided will not work.  You'll find the key around line 16 of each file.
+```uc.browserKey = "d7f38666b17e60016306f071d41e3700";```
+4. Right below the browser key, set your storefront server name.  This is needed to provide proper branding for receipts.
+`uc.storeFront = "demo.ultracartstore.com"`
+5. In trial-page1.html, find the following javascript variables and set them accordingly:
+   * myItemId - this is the trial item id you are offering.
+   * shippingMethod - the name of the shipping method you'll use. 
+   * shippingCost - the cost of the shipping method.  this is verified and corrected on the server, so do not worry about customers finding and changing this value.  However, we set it here to make the checkout complete and run fast.
+6. Terms and Conditions link:  Search for 'add_link_here' and add a link to your terms and conditions.   
+7. From the base directory, run 'gulp'.  The default action will build the .js and .css file.
+8. Deploy or test your checkout!
 
-6. Edit trial-page2.html and implement validate() to perform whatever client side validation you desire.
-7. Error handling: find all occurrences of 'alert' and implement a means of displaying errors to the customer.
-8. Terms and Conditions link:  Search for 'add_link_here' and add a link to your terms and conditions.
+
 
 #### Changelog
+
+###### Version 3.0
+Major overhaul.  Converted the checkout to use the latest UltraCart API.
+
+See www.ultracart.com/api/
+
 ###### Version 2.0
 
 _This version will now run without any PHP support._
