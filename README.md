@@ -5,6 +5,7 @@ A simple two page checkout geared toward trial offers.  This checkout is popular
 For development, you will need:
 * Node.js installed on your computer
 * Gulp.js installed
+* UltraCart SDK - See https://github.com/UltraCart/rest_api_v2_sdk_javascript
 
 ### Getting Started
 To Use:
