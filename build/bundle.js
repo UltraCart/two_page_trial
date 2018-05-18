@@ -51471,7 +51471,7 @@ window.uc.loadCart = function (successCallback) {
 
                 cartToFields(uc.cart);
                 // even if the cookie is already set, set it again.  updates the expiration of it.
-                jQuery.cookie(uc.cookieEnabled, uc.cart.cart_id, {expires: 7, path: '/'});
+                jQuery.cookie(uc.cookieName, uc.cart.cart_id, {expires: 7, path: '/'});
 
             }
 
